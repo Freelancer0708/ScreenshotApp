@@ -12,9 +12,15 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# 環境変数をロード
+load_dotenv()
+
 # Basic Authentication
 USERNAME = os.getenv("ADMIN_USER")
 PASSWORD = os.getenv("ADMIN_PASS")
+
+if not USERNAME or not PASSWORD:
+    raise ValueError("環境変数 ADMIN_USER と ADMIN_PASS を設定してください")
 
 def check_auth(username, password):
     return username == USERNAME and password == PASSWORD

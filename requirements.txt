@@ -2,3 +2,4 @@ Flask
 selenium
 beautifulsoup4
 gunicorn
+pip freeze > requirements.txt

@@ -1,12 +1,18 @@
-FROM python:3.9
+# Webページスクリーンショット取得アプリ
 
-WORKDIR /app
+## 概要
+指定したURLのスクリーンショットとHTML構造を取得するFlaskアプリです。
 
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+## 必要な環境
+- Python 3.9+
+- Flask
+- Selenium
+- BeautifulSoup4
+- Google Chrome & ChromeDriver
 
-COPY . .
-
-EXPOSE 5000
-
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+## インストール
+```bash
+git clone https://github.com/your-repo/screenshot-app.git
+cd screenshot-app
+pip install -r requirements.txt
+ 

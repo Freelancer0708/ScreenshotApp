@@ -10,10 +10,11 @@ from functools import wraps
 # 環境変数をロード
 load_dotenv()
 
-app = Flask(__name__)
+# staticフォルダがなければ作成
+if not os.path.exists("static"):
+    os.makedirs("static")
 
-# 環境変数をロード
-load_dotenv()
+app = Flask(__name__)
 
 # Basic Authentication
 USERNAME = os.getenv("ADMIN_USER")
@@ -55,9 +56,13 @@ def index():
             chrome_options.add_argument('--disable-gpu')
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument('--remote-debugging-port=9222')
+
             driver = webdriver.Chrome(options=chrome_options)
             
             driver.get(url)
+            driver.implicitly_wait(10)  # 10秒待機
+            
             timestamp = int(time.time())
             screenshot_path = f"static/screenshot_{timestamp}.png"
             driver.save_screenshot(screenshot_path)

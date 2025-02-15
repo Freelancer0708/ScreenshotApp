@@ -57,24 +57,29 @@ def index():
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument('--remote-debugging-port=9222')
-
+            chrome_options.add_argument('--disable-software-rasterizer')
+            chrome_options.add_argument('--disable-background-timer-throttling')
+            chrome_options.add_argument('--disable-backgrounding-occluded-windows')
+            chrome_options.add_argument('--disable-renderer-backgrounding')
+            
             driver = webdriver.Chrome(options=chrome_options)
             
-            driver.get(url)
-            driver.implicitly_wait(10)  # 10秒待機
-            
-            timestamp = int(time.time())
-            screenshot_path = f"static/screenshot_{timestamp}.png"
-            driver.save_screenshot(screenshot_path)
-            
-            # Get page source
-            html_source = driver.page_source
-            driver.quit()
-            
-            soup = BeautifulSoup(html_source, 'html.parser')
-            formatted_html = soup.prettify()
-            
-            return render_template('index.html', screenshot=screenshot_path, html_code=formatted_html, url=url)
+            try:
+                driver.get(url)
+                driver.implicitly_wait(10)  # 10秒待機してページが完全にロードされるのを待つ
+                
+                timestamp = int(time.time())
+                screenshot_path = f"static/screenshot_{timestamp}.png"
+                driver.save_screenshot(screenshot_path)
+                
+                # Get page source
+                html_source = driver.page_source
+                soup = BeautifulSoup(html_source, 'html.parser')
+                formatted_html = soup.prettify()
+                
+                return render_template('index.html', screenshot=screenshot_path, html_code=formatted_html, url=url)
+            finally:
+                driver.quit()  # メモリ管理のため、必ずドライバーを閉じる
         except Exception as e:
             return render_template('index.html', error=f'エラー: {str(e)}')
     

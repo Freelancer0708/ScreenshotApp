@@ -1,89 +1,42 @@
-from flask import Flask, request, render_template, Response, send_file
+from flask import Flask, render_template, request
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import requests
 from bs4 import BeautifulSoup
 import os
-import time
-from dotenv import load_dotenv
-from functools import wraps
-
-# 環境変数をロード
-load_dotenv()
-
-# staticフォルダがなければ作成
-if not os.path.exists("static"):
-    os.makedirs("static")
 
 app = Flask(__name__)
 
-# Basic Authentication
-USERNAME = os.getenv("ADMIN_USER")
-PASSWORD = os.getenv("ADMIN_PASS")
+# スクリーンショットを保存するディレクトリ
+ios.makedirs("static/screenshots", exist_ok=True)
 
-if not USERNAME or not PASSWORD:
-    raise ValueError("環境変数 ADMIN_USER と ADMIN_PASS を設定してください")
+def take_screenshot(url):
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+    screenshot_path = f"static/screenshots/screenshot.png"
+    driver.save_screenshot(screenshot_path)
+    driver.quit()
+    return screenshot_path
 
-def check_auth(username, password):
-    return username == USERNAME and password == PASSWORD
-
-def authenticate():
-    return Response(
-        "Could not verify your access level for that URL.", 401,
-        {'WWW-Authenticate': 'Basic realm="Login Required"'}
-    )
-
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return authenticate()
-        return f(*args, **kwargs)
-    return decorated
+def fetch_html_structure(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    return soup.prettify()
 
 @app.route('/', methods=['GET', 'POST'])
-@requires_auth
 def index():
     if request.method == 'POST':
-        url = request.form.get('url')
-        if not url:
-            return render_template('index.html', error='URLを入力してください')
-        
-        try:
-            # Set up Selenium headless browser
-            chrome_options = Options()
-            chrome_options.add_argument('--headless')
-            chrome_options.add_argument('--disable-gpu')
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.add_argument('--remote-debugging-port=9222')
-            chrome_options.add_argument('--disable-software-rasterizer')
-            chrome_options.add_argument('--disable-background-timer-throttling')
-            chrome_options.add_argument('--disable-backgrounding-occluded-windows')
-            chrome_options.add_argument('--disable-renderer-backgrounding')
-            
-            driver = webdriver.Chrome(options=chrome_options)
-            
-            try:
-                driver.get(url)
-                driver.implicitly_wait(10)  # 10秒待機してページが完全にロードされるのを待つ
-                
-                timestamp = int(time.time())
-                screenshot_path = f"static/screenshot_{timestamp}.png"
-                driver.save_screenshot(screenshot_path)
-                
-                # Get page source
-                html_source = driver.page_source
-                soup = BeautifulSoup(html_source, 'html.parser')
-                formatted_html = soup.prettify()
-                
-                return render_template('index.html', screenshot=screenshot_path, html_code=formatted_html, url=url)
-            finally:
-                driver.quit()  # メモリ管理のため、必ずドライバーを閉じる
-        except Exception as e:
-            return render_template('index.html', error=f'エラー: {str(e)}')
-    
-    return render_template('index.html')
+        url = request.form['url']
+        screenshot_path = take_screenshot(url)
+        html_structure = fetch_html_structure(url)
+        return render_template('index.html', screenshot=screenshot_path, html_structure=html_structure, url=url)
+    return render_template('index.html', screenshot=None, html_structure=None)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)

@@ -3,32 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webページスクリーンショット取得</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <title>スクリーンショット & HTML 構造</title>
 </head>
-<body class="container py-5">
-    <h1 class="mb-4">Webページスクリーンショット取得</h1>
-    
-    {% if error %}
-        <div class="alert alert-danger">{{ error }}</div>
-    {% endif %}
-    
-    <form method="POST" class="mb-4">
-        <div class="mb-3">
-            <label for="url" class="form-label">URLを入力してください</label>
-            <input type="text" class="form-control" id="url" name="url" required>
-        </div>
-        <button type="submit" class="btn btn-primary">取得</button>
+<body>
+    <h2>スクレイピングツール</h2>
+    <form method="post">
+        <input type="text" name="url" placeholder="URLを入力" required>
+        <button type="submit">取得</button>
     </form>
-    
+
     {% if screenshot %}
-        <h2 class="mt-4">スクリーンショット</h2>
-        <img src="{{ screenshot }}" class="img-fluid" alt="スクリーンショット">
+        <h3>スクリーンショット</h3>
+        <img src="{{ screenshot }}" alt="スクリーンショット" width="500">
     {% endif %}
-    
-    {% if html_code %}
-        <h2 class="mt-4">HTML構造</h2>
-        <pre class="bg-light p-3 border" style="max-height: 400px; overflow-y: auto;">{{ html_code }}</pre>
+
+    {% if html_structure %}
+        <h3>HTML 構造</h3>
+        <pre>{{ html_structure }}</pre>
     {% endif %}
 </body>
 </html>

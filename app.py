@@ -4,6 +4,7 @@ from selenium.webdriver.chrome.options import Options
 import requests
 from bs4 import BeautifulSoup
 import os
+import tempfile
 
 app = Flask(__name__)
 
@@ -16,6 +17,10 @@ def take_screenshot(url):
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+
+    # 一意のディレクトリを作成して指定する
+    temp_user_data_dir = tempfile.mkdtemp()
+    options.add_argument(f"--user-data-dir={temp_user_data_dir}")
     
     driver = webdriver.Chrome(options=options)
     driver.get(url)

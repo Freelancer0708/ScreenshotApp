@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 
 # スクリーンショットを保存するディレクトリ
-ios.makedirs("static/screenshots", exist_ok=True)
+os.makedirs("static/screenshots", exist_ok=True)
 
 def take_screenshot(url):
     options = Options()

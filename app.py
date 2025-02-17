@@ -1,15 +1,12 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import requests
 from bs4 import BeautifulSoup
 import os
-import tempfile
 
 app = Flask(__name__)
-
-# スクリーンショットを保存するディレクトリ
-os.makedirs("static/screenshots", exist_ok=True)
 
 def take_screenshot(url):
     options = Options()
@@ -18,14 +15,15 @@ def take_screenshot(url):
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    # 一意のディレクトリを作成して指定する
-    temp_user_data_dir = tempfile.mkdtemp()
-    options.add_argument(f"--user-data-dir={temp_user_data_dir}")
+    # WebDriver Manager を使用して最新の ChromeDriver を取得
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     
-    driver = webdriver.Chrome(options=options)
     driver.get(url)
-    screenshot_path = f"static/screenshots/screenshot.png"
+    
+    # Render の無料環境では `/tmp/` に保存
+    screenshot_path = "/tmp/screenshot.png"
     driver.save_screenshot(screenshot_path)
+    
     driver.quit()
     return screenshot_path
 
@@ -40,8 +38,16 @@ def index():
         url = request.form['url']
         screenshot_path = take_screenshot(url)
         html_structure = fetch_html_structure(url)
-        return render_template('index.html', screenshot=screenshot_path, html_structure=html_structure, url=url)
-    return render_template('index.html', screenshot=None, html_structure=None)
+        
+        # `/screenshot` で画像を提供
+        return render_template('index.html', screenshot_url='/screenshot', html_structure=html_structure, url=url)
+    
+    return render_template('index.html', screenshot_url=None, html_structure=None)
+
+# `/screenshot` エンドポイントを作成し、スクリーンショットを返す
+@app.route('/screenshot')
+def get_screenshot():
+    return send_file("/tmp/screenshot.png", mimetype='image/png')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=10000)

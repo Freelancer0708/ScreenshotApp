@@ -1,6 +1,5 @@
 Flask
 selenium
-beautifulsoup4
 requests
-webdriver-manager
+beautifulsoup4
 gunicorn

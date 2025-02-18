@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import requests
@@ -7,10 +7,6 @@ import os
 import tempfile
 
 app = Flask(__name__)
-
-# 環境変数からベーシック認証のユーザー名とパスワードを取得
-BASIC_AUTH_USERNAME = os.environ.get("BASIC_AUTH_USERNAME")
-BASIC_AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD")
 
 # スクリーンショットを保存するディレクトリ
 os.makedirs("static/screenshots", exist_ok=True)
@@ -38,25 +34,8 @@ def fetch_html_structure(url):
     soup = BeautifulSoup(response.text, "html.parser")
     return soup.prettify()
 
-# ベーシック認証を実装
-def check_auth(username, password):
-    """ 環境変数と一致するかを確認 """
-    return username == BASIC_AUTH_USERNAME and password == BASIC_AUTH_PASSWORD
-
-def authenticate():
-    """ 認証失敗時のレスポンス """
-    return Response(
-        "認証が必要です。ブラウザでユーザー名とパスワードを入力してください。",
-        401,
-        {"WWW-Authenticate": 'Basic realm="Login Required"'}
-    )
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    auth = request.authorization
-    if not auth or not check_auth(auth.username, auth.password):
-        return authenticate()
-
     if request.method == 'POST':
         url = request.form['url']
         screenshot_path = take_screenshot(url)
